@@ -38,40 +38,137 @@ portal-charts/           Helm chart for UI, agent, backend, and database config
 docs/                    Architecture, design, and demo documentation
 ```
 
-## Local Development
+## Local Development Setup (macOS)
 
-Backend API:
+### Prerequisites
 
+- **Python 3.11+**: Install via Homebrew: `brew install python@3.11`
+- **Node.js 18+**: Install via Homebrew: `brew install node`
+- **Docker**: Install Docker Desktop for Mac
+- **Git**: Install via Homebrew: `brew install git`
+
+### Quick Start (macOS)
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/sudhirchaudhary0903-art/SWE645-Extra.git
+   cd SWE645-Extra
+   ```
+
+2. **Start MySQL Database:**
+   ```bash
+   docker run -d \
+     --name portal-survey-mysql \
+     -e MYSQL_ROOT_PASSWORD=rootpassword \
+     -e MYSQL_DATABASE=portal_survey_db \
+     -e MYSQL_USER=appadmin \
+     -e MYSQL_PASSWORD=Welcome1 \
+     -p 3306:3306 \
+     mysql:8.0
+   ```
+
+3. **Setup and Start API Service:**
+   ```bash
+   cd portal-survey-api
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   cp env.example .env
+   python -m uvicorn main:app --host 127.0.0.1 --port 8000
+   ```
+   Keep this terminal running.
+
+4. **Setup and Start Agent Service (New Terminal):**
+   ```bash
+   cd portal-survey-agent
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   export API_BASE_URL=http://localhost:8000
+   export MCP_SERVER_URL=http://localhost:8000/mcp
+   # Optional: export OPENAI_API_KEY=your_key_here
+   python -m uvicorn main:app --reload --port 8001
+   ```
+   Keep this terminal running.
+
+5. **Setup and Start UI (New Terminal):**
+   ```bash
+   cd portal-survey-ui
+   npm install
+   VITE_API_BASE_URL=http://localhost:8000 \
+   VITE_AGENT_BASE_URL=http://localhost:8001 \
+   npm run dev
+   ```
+   Keep this terminal running.
+
+6. **Access the Application:**
+   - **UI**: http://localhost:3000
+   - **API Health**: http://127.0.0.1:8000/health
+   - **Agent Health**: http://127.0.0.1:8001/health
+
+### Troubleshooting (macOS)
+
+**Port conflicts:**
 ```bash
-cd portal-survey-api
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp env.example .env
-uvicorn main:app --reload --port 8000
+# Kill processes on specific ports
+lsof -ti:8000 | xargs kill -9
+lsof -ti:8001 | xargs kill -9
+lsof -ti:3000 | xargs kill -9
 ```
 
-Agent service:
-
+**MySQL issues:**
 ```bash
-cd portal-survey-agent
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-export API_BASE_URL=http://localhost:8000
-export MCP_SERVER_URL=http://localhost:8000/mcp
-export OPENAI_API_KEY=<optional>
-uvicorn main:app --reload --port 8001
+# Stop and remove existing container
+docker stop portal-survey-mysql
+docker rm portal-survey-mysql
+
+# Restart MySQL
+docker run -d \
+  --name portal-survey-mysql \
+  -e MYSQL_ROOT_PASSWORD=rootpassword \
+  -e MYSQL_DATABASE=portal_survey_db \
+  -e MYSQL_USER=appadmin \
+  -e MYSQL_PASSWORD=Welcome1 \
+  -p 3306:3306 \
+  mysql:8.0
 ```
 
-Frontend:
-
+**Python virtual environment issues:**
 ```bash
-cd portal-survey-ui
+# Recreate virtual environment
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Node.js issues:**
+```bash
+# Clear npm cache and reinstall
+rm -rf node_modules package-lock.json
 npm install
-VITE_API_BASE_URL=http://localhost:8000 \
-VITE_AGENT_BASE_URL=http://localhost:8001 \
-npm run dev
+```
+
+### Development Workflow
+
+- **API**: http://127.0.0.1:8000/docs (Swagger UI)
+- **Agent**: http://127.0.0.1:8001/docs
+- **UI**: http://localhost:3000 (AI Survey Assistant page)
+
+### Testing the AI Agent
+
+Use the AI Survey Assistant page or curl commands:
+
+```bash
+# Create a survey
+curl -X POST http://localhost:8001/agent/query \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Create a survey for John Doe. He liked campus and sports, heard from friends."}'
+
+# List surveys
+curl -X POST http://localhost:8001/agent/query \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Show me all surveys"}'
 ```
 
 ## Agent Endpoint
