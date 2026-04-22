@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+*kubeconfig*
+*cluster*.yaml

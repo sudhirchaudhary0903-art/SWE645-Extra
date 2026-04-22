@@ -1,0 +1,10 @@
+apiVersion: v2
+name: portal-survey
+description: Helm chart for the agentic Student Survey system on Rancher RKE2
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+maintainers:
+  - name: Vivek Sarvagod
+    email: vsarvago@gmu.edu
+  - name: Sudhir Chaudhary
